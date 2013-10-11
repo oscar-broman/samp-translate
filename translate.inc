@@ -41,6 +41,8 @@ static const sc_OpcodeOperands[Opcode:138] = {
 	1, 0
 };
 
+stock const TRANSLATE_MAGIC = 0xD253E095;
+
 stock
 	// Translate strings
 	g_TS[MAX_TRANSLATE_STRINGS][MAX_TRANSLATE_LANGUAGES][1],
@@ -81,13 +83,13 @@ static stock RedirectArraySlot(...);
 
 // TODO:
 #define _(%1) \
-	g_TS[GetTS(%1)][g_CI]
+	g_TS[GetTS("  " #%1)][g_CI]
 
 #define __(%1,%2) \
-	g_TS[GetTS(%1)][g_PL[%2]]
+	g_TS[GetTS("  " #%1)][g_PL[%2]]
 
 #define ___(%1,%2) \
-	g_TS[GetTS(%1)][%2]
+	g_TS[GetTS("  " #%1)][%2]
 
 stock GetTS(...) {
 	return 0;
@@ -147,7 +149,7 @@ static Init() {
 		new tmp[1][1];
 		
 		// tmp[0] -> @"str"
-		RedirectArraySlot(tmp, 0, str_addr);
+		RedirectArraySlot(tmp, 0, str_addr + 8);
 		
 		// Search for a duplicate
 		for (new i = 0; i < gs_TsIdx; i++) {
@@ -174,8 +176,15 @@ static Init() {
 		WriteOpcode(address -  4, OP_NOP);
 		WriteOpcode(address     , OP_CONST_PRI, idx);
 		
+		// Save information before the string (first two spaces added by the macro)
+		// Write the magic so we can identify if a string is from this script
+		WriteAmxMemory(str_addr    , TRANSLATE_MAGIC);
+		// Lower 2 bytes is the index in g_TS and upper 2 bytes is the language index
+		// The default language index is 0 so we don't need to write it
+		WriteAmxMemory(str_addr + 4, idx);
+		
 		// g_TS[idx][0] = @"str"
-		RedirectArraySlot(g_TS[idx], 0, str_addr);
+		RedirectArraySlot(g_TS[idx], 0, str_addr + 8);
 	}
 }
 
@@ -229,6 +238,12 @@ stock LoadLanguage(const fname[]) {
 			}
 			
 			found[i] = true;
+			
+			// See Init function for details
+			WriteAmxMemory(ref(gs_TranslateData[gs_TranslateDataLength]), TRANSLATE_MAGIC);
+			WriteAmxMemory(ref(gs_TranslateData[gs_TranslateDataLength + 1]), langidx << 16 | i);
+			
+			gs_TranslateDataLength += 2;
 			
 			strcat(gs_TranslateData[gs_TranslateDataLength], translation, sizeof(gs_TranslateData) - gs_TranslateDataLength);
 			
@@ -294,6 +309,31 @@ stock SetPlayerLanguage(playerid, lang) {
 
 stock GetPlayerLanguage(palyerid) {
 	return g_PlayerLanguage[playerid];
+}
+
+stock IsLanguageString(const string[]) {
+	new addr = ref(string);
+	
+	if (addr >= 8 && ReadAmxMemory(addr - 8) == TRANSLATE_MAGIC) {
+		return true;
+	}
+	
+	return false;
+}
+
+stock GetLanguageStringInfo(const string[], &langidx, &idx) {
+	new addr = ref(string);
+	
+	if (addr >= 8 && ReadAmxMemory(addr - 8) == TRANSLATE_MAGIC) {
+		langidx = ReadAmxMemory(addr - 4) >>> 16;
+		idx = ReadAmxMemory(addr - 4) & 0xFFFF;
+	
+		if (0 <= langidx < MAX_TRANSLATE_LANGUAGES && 0 <= idx < MAX_TRANSLATE_STRINGS) {
+			return true;
+		}
+	}
+	
+	return false;
 }
 
 // Hook OnGameModeInit
