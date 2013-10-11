@@ -1,8 +1,6 @@
 #include <a_samp>
 #include "translate"
 
-stock const SOME_STRING[] = "Come on, hurry up!";
-
 public OnFilterScriptInit() {
 	// Do this once for each language
 	new spanish = LoadLanguage("spanish.lang.inc");
@@ -20,7 +18,7 @@ public OnFilterScriptInit() {
 	
 	// send messages in playerid's language
 	print(__("hello mr world", playerid));
-	print(__(SOME_STRING, playerid));
+	print(__("Come on, hurry up!", playerid));
 	print(__("How are you?", playerid));
 	print(__("I don't like green bananas", playerid));
 	
