@@ -188,7 +188,7 @@ static Init() {
 	}
 }
 
-stock LoadLanguage(const fname[]) {
+stock LoadLanguage(const fname[], langidx = -1) {
 	if (!fexist(fname)) {
 		return -1;
 	}
@@ -201,7 +201,10 @@ stock LoadLanguage(const fname[]) {
 	
 	new buf[1024];
 	new found[MAX_TRANSLATE_STRINGS] = {false, ...};
-	new langidx = gs_TsLangIdx++;
+	
+	if (langidx == -1) {
+		langidx = gs_TsLangIdx++;
+	}
 	
 	while (fread(fp, buf)) {
 		strtrim(buf);
