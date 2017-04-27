@@ -310,7 +310,7 @@ stock SetPlayerLanguage(playerid, lang) {
 	return false;
 }
 
-stock GetPlayerLanguage(palyerid) {
+stock GetPlayerLanguage(playerid) {
 	return g_PlayerLanguage[playerid];
 }
 
