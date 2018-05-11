@@ -9,7 +9,7 @@
 #endif
 
 // Make sure amx_assembly was included
-#if !defined _inc_opcode
+#if !defined OPCODE_INC
 	#error The amx_assembly library is required, get it here: github.com/Zeex/amx_assembly
 #endif
 
