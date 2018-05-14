@@ -4,7 +4,7 @@
 #tryinclude "amx_assembly\phys_memory"
 #tryinclude "amx_assembly\asm"
 
-#if !defined _inc_strlib
+#if !defined STRLIB_INC
 	#error The strlib library is required, get it here: github.com/oscar-broman/strlib
 #endif
 
